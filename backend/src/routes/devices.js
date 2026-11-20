@@ -22,7 +22,7 @@ router.post('/', async (req, res, next) => {
     // 1. чи існує стійка
     const rack = racks.find((r) => r.id === rackId);
     if (!rack) {
-      return res.status(404).json({ message: 'Стійку не знайдено' });
+      return res.status(400).json({ message: 'Стійку не знайдено' });
     }
 
     // 2. чи влазить пристрій у стійку
@@ -38,7 +38,7 @@ router.post('/', async (req, res, next) => {
       if (d.rackId !== rackId) continue;
       const dLast = d.unitPosition + d.unitHeight - 1;
       if (unitPosition <= dLast && d.unitPosition <= lastUnit) {
-        return res.status(409).json({
+        return res.status(400).json({
           message: `Юніти зайняті пристроєм ${d.vendorModel} (${d.unitPosition}-${dLast}U)`,
         });
       }
@@ -46,7 +46,7 @@ router.post('/', async (req, res, next) => {
 
     // 4. чи унікальний серійний номер
     if (devices.some((d) => d.serialNumber === serialNumber)) {
-      return res.status(409).json({ message: `Серійний номер ${serialNumber} вже існує` });
+      return res.status(400).json({ message: `Серійний номер ${serialNumber} вже існує` });
     }
 
     const newDevice = {
