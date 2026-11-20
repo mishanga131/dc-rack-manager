@@ -84,7 +84,7 @@ router.post('/', async (req, res, next) => {
       unitCapacity,
       maxPowerKw,
       status,
-      description: description || '',
+      description: description ? description.trim() : '',
     };
 
     const racks = await getRacks();
@@ -112,6 +112,21 @@ router.put('/:id', async (req, res, next) => {
     }
 
     const { name, location, unitCapacity, maxPowerKw, status, description } = req.body;
+
+    // не можна зменшити місткість нижче зайнятих юнітів
+    const devices = await getDevices();
+    let maxUsedUnit = 0;
+    for (const d of devices) {
+      if (d.rackId !== racks[index].id) continue;
+      maxUsedUnit = Math.max(maxUsedUnit, d.unitPosition + d.unitHeight - 1);
+    }
+    if (unitCapacity < maxUsedUnit) {
+      return res.status(400).json({
+        message: 'Помилка валідації',
+        errors: { unitCapacity: `Обладнання займає юніти до ${maxUsedUnit}U, місткість не може бути меншою` },
+      });
+    }
+
     racks[index] = {
       ...racks[index],
       name: name.trim(),
@@ -119,7 +134,7 @@ router.put('/:id', async (req, res, next) => {
       unitCapacity,
       maxPowerKw,
       status,
-      description: description || '',
+      description: description ? description.trim() : '',
     };
 
     await saveRacks(racks);

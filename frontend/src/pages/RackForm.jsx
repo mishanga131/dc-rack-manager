@@ -25,6 +25,7 @@ export default function RackForm() {
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [maxUsedUnit, setMaxUsedUnit] = useState(0);
 
   // при редагуванні завантажуємо дані стійки
   useEffect(() => {
@@ -42,6 +43,9 @@ export default function RackForm() {
         };
         setForm(data);
         setStartForm(data);
+        let maxUnit = 0;
+        for (const d of rack.devices) maxUnit = Math.max(maxUnit, d.unitPosition + d.unitHeight - 1);
+        setMaxUsedUnit(maxUnit);
       })
       .catch((err) => {
         toast(err.message, 'error');
@@ -73,12 +77,12 @@ export default function RackForm() {
     const newForm = { ...form, [e.target.name]: e.target.value };
     setForm(newForm);
     // після першої спроби відправки підсвічуємо помилки одразу при введенні
-    if (submitted) setErrors(validateRack(newForm));
+    if (submitted) setErrors(validateRack(newForm, maxUsedUnit));
   }
 
   // для полів: при виході з поля перевіряємо його
   function handleBlur(e) {
-    const fieldError = validateRack(form)[e.target.name];
+    const fieldError = validateRack(form, maxUsedUnit)[e.target.name];
     setErrors({ ...errors, [e.target.name]: fieldError });
   }
 
@@ -86,7 +90,7 @@ export default function RackForm() {
     e.preventDefault();
     setSubmitted(true);
 
-    const formErrors = validateRack(form);
+    const formErrors = validateRack(form, maxUsedUnit);
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0) {
       toast('Перевірте поля форми', 'error');

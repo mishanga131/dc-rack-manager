@@ -1,13 +1,20 @@
 const statuses = ['active', 'maintenance', 'reserved'];
 const deviceTypes = ['server', 'switch', 'ups', 'storage'];
 
+// trim, або null якщо не рядок
+function str(value) {
+  return typeof value === 'string' ? value.trim() : null;
+}
+
 export function validateRack(data) {
   const errors = {};
+  const name = str(data.name);
+  const location = str(data.location);
 
-  if (!data.name || data.name.trim().length < 3 || data.name.trim().length > 30) {
+  if (name === null || name.length < 3 || name.length > 30) {
     errors.name = 'Назва від 3 до 30 символів';
   }
-  if (!data.location || !data.location.trim()) {
+  if (!location) {
     errors.location = 'Вкажіть локацію';
   }
   if (!Number.isInteger(data.unitCapacity) || data.unitCapacity < 10 || data.unitCapacity > 48) {
@@ -19,8 +26,10 @@ export function validateRack(data) {
   if (!statuses.includes(data.status)) {
     errors.status = 'Невірний статус';
   }
-  if (data.description && data.description.length > 200) {
-    errors.description = 'Опис до 200 символів';
+  if (data.description !== undefined && data.description !== null) {
+    const description = str(data.description);
+    if (description === null) errors.description = 'Опис має бути текстом';
+    else if (description.length > 200) errors.description = 'Опис до 200 символів';
   }
 
   return errors;
@@ -29,8 +38,8 @@ export function validateRack(data) {
 export function validateDevice(data) {
   const errors = {};
 
-  if (!data.rackId) errors.rackId = 'Не вказана стійка';
-  if (!data.vendorModel || !data.vendorModel.trim()) errors.vendorModel = 'Вкажіть модель';
+  if (!str(data.rackId)) errors.rackId = 'Не вказана стійка';
+  if (!str(data.vendorModel)) errors.vendorModel = 'Вкажіть модель';
   if (!deviceTypes.includes(data.deviceType)) errors.deviceType = 'Невірний тип';
   if (!Number.isInteger(data.unitPosition) || data.unitPosition < 1) {
     errors.unitPosition = 'Позиція від 1';
@@ -41,7 +50,8 @@ export function validateDevice(data) {
   if (typeof data.powerConsumptionW !== 'number' || data.powerConsumptionW <= 0) {
     errors.powerConsumptionW = 'Споживання має бути більше 0';
   }
-  if (!data.serialNumber || data.serialNumber.length < 4) {
+  const serial = str(data.serialNumber);
+  if (serial === null || serial.length < 4) {
     errors.serialNumber = 'Серійний номер від 4 символів';
   }
 

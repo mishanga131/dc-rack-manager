@@ -13,7 +13,7 @@ npm run dev
 # 2. Frontend (порт 5173) — в іншому терміналі
 cd frontend
 npm install
-cp .env.example .env   # VITE_API_URL=http://localhost:3000/api
+cp .env.example .env   # необовʼязково, за замовчуванням http://localhost:3000/api
 npm run dev
 ```
 

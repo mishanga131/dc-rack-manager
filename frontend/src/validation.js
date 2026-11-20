@@ -11,7 +11,8 @@ export const DEVICE_TYPE_LABELS = {
   storage: 'СЗД',
 };
 
-export function validateRack(form) {
+// maxUsedUnit - останній зайнятий юніт (для редагування)
+export function validateRack(form, maxUsedUnit = 0) {
   const errors = {};
   const name = form.name.trim();
   const capacity = Number(form.unitCapacity);
@@ -21,6 +22,8 @@ export function validateRack(form) {
   if (!form.location.trim()) errors.location = 'Вкажіть локацію';
   if (!Number.isInteger(capacity) || capacity < 10 || capacity > 48) {
     errors.unitCapacity = 'Ціле число від 10 до 48';
+  } else if (capacity < maxUsedUnit) {
+    errors.unitCapacity = `Обладнання займає юніти до ${maxUsedUnit}U`;
   }
   if (form.maxPowerKw === '' || power < 1 || power > 30) errors.maxPowerKw = 'Від 1 до 30 кВт';
   if (form.description.length > 200) errors.description = 'До 200 символів';
