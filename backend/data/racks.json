@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rack-1",
+    "name": "Rack-A-101",
+    "location": "Північний зал (DC-1)",
+    "unitCapacity": 42,
+    "maxPowerKw": 18.5,
+    "status": "active",
+    "description": "Основна стійка кластера віртуалізації"
+  },
+  {
+    "id": "rack-2",
+    "name": "Rack-B-204",
+    "location": "Резервний сектор Б",
+    "unitCapacity": 24,
+    "maxPowerKw": 10.0,
+    "status": "maintenance",
+    "description": "Планова заміна блоків живлення та кабель-менеджменту"
+  }
+]

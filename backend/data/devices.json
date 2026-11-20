@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dev-1",
+    "rackId": "rack-1",
+    "vendorModel": "Dell PowerEdge R750",
+    "deviceType": "server",
+    "unitPosition": 10,
+    "unitHeight": 2,
+    "powerConsumptionW": 750,
+    "serialNumber": "SN-DELL-75001"
+  },
+  {
+    "id": "dev-2",
+    "rackId": "rack-1",
+    "vendorModel": "Cisco Catalyst 9300",
+    "deviceType": "switch",
+    "unitPosition": 41,
+    "unitHeight": 2,
+    "powerConsumptionW": 420,
+    "serialNumber": "SN-CSCO-93002"
+  },
+  {
+    "id": "6284f845-a8bb-42a7-822a-256d86f6b46d",
+    "rackId": "rack-1",
+    "vendorModel": "HP ProLiant DL380",
+    "deviceType": "server",
+    "unitPosition": 36,
+    "unitHeight": 1,
+    "powerConsumptionW": 500,
+    "serialNumber": "SN-HP-0001"
+  }
+]
