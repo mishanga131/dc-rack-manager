@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { useToast } from '../components/Toast.jsx';
 import { ConfirmModal } from '../components/Modal.jsx';
 import { validateRack } from '../validation.js';
+import { Skeleton } from '../components/ui.jsx';
 
 const emptyForm = {
   name: '',
@@ -26,6 +27,8 @@ export default function RackForm() {
   const [submitted, setSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
   const [maxUsedUnit, setMaxUsedUnit] = useState(0);
+  const [loading, setLoading] = useState(isEdit);
+  const [saving, setSaving] = useState(false);
 
   // при редагуванні завантажуємо дані стійки
   useEffect(() => {
@@ -46,6 +49,7 @@ export default function RackForm() {
         let maxUnit = 0;
         for (const d of rack.devices) maxUnit = Math.max(maxUnit, d.unitPosition + d.unitHeight - 1);
         setMaxUsedUnit(maxUnit);
+        setLoading(false);
       })
       .catch((err) => {
         toast(err.message, 'error');
@@ -106,6 +110,7 @@ export default function RackForm() {
       description: form.description.trim(),
     };
 
+    setSaving(true);
     try {
       const rack = isEdit ? await api.updateRack(id, body) : await api.createRack(body);
       toast(isEdit ? 'Зміни збережено' : 'Стійку створено', 'success');
@@ -114,6 +119,7 @@ export default function RackForm() {
       setErrors(err.errors);
       toast(err.message, 'error');
     }
+    setSaving(false);
   }
 
   return (
@@ -121,6 +127,14 @@ export default function RackForm() {
       <Link to={isEdit ? `/racks/${id}` : '/racks'} className="back-link">← Назад</Link>
       <h1>{isEdit ? 'Редагування стійки' : 'Нова стійка'}</h1>
 
+      {loading ? (
+        <div className="panel form">
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+          <Skeleton height={90} />
+        </div>
+      ) : (
       <form className="panel form" onSubmit={handleSubmit} noValidate>
         <label className={`field ${errors.name ? 'field-error' : ''}`}>
           <span className="field-label">Назва *</span>
@@ -165,9 +179,12 @@ export default function RackForm() {
 
         <div className="modal-actions">
           <Link to={isEdit ? `/racks/${id}` : '/racks'} className="btn">Скасувати</Link>
-          <button type="submit" className="btn btn-primary">{isEdit ? 'Зберегти' : 'Створити'}</button>
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving ? 'Збереження…' : isEdit ? 'Зберегти' : 'Створити'}
+          </button>
         </div>
       </form>
+      )}
 
       {blocker.state === 'blocked' && (
         <ConfirmModal

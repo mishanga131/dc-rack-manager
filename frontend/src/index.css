@@ -102,7 +102,8 @@ textarea.input { resize: vertical; }
 .stat strong { font-size: 1.15rem; }
 .stat-warn strong { color: var(--red); }
 .description { margin: 0 0 1rem; color: var(--muted); }
-.details-layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 1rem; align-items: start; margin-top: 1rem; }
+.details-layout { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 1rem; align-items: start; margin-top: 1rem; }
+.details-layout > * { min-width: 0; }
 
 .rack-diagram {
   display: grid; grid-template-columns: 1fr; gap: 2px; padding: 8px;
@@ -127,11 +128,13 @@ textarea.input { resize: vertical; }
 .table tr:hover td { background: var(--panel-2); }
 
 /* Forms */
-.form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.form { display: flex; flex-direction: column; gap: 1.4rem; margin-top: 1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 1rem; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; position: relative; }
 .field-label { font-size: 0.85rem; color: var(--muted); }
-.field-msg { font-size: 0.78rem; color: var(--red); }
+/* абсолютно, щоб текст помилки не зсував кнопки під курсором */
+.field-msg { position: absolute; top: 100%; left: 0; margin-top: 2px; font-size: 0.78rem; line-height: 1.2; color: var(--red); }
+.is-refreshing { opacity: 0.55; transition: opacity 0.15s; }
 .field-hint { font-size: 0.78rem; color: var(--muted); }
 .field-error .input { border-color: var(--red); background: rgba(248, 81, 73, 0.06); }
 
@@ -164,7 +167,7 @@ textarea.input { resize: vertical; }
 @media (max-width: 960px) {
   .filters { grid-template-columns: 1fr 1fr; }
   .filters .input:first-child { grid-column: 1 / -1; }
-  .details-layout { grid-template-columns: 1fr; }
+  .details-layout { grid-template-columns: minmax(0, 1fr); }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 560px) {

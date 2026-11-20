@@ -17,18 +17,24 @@ export default function RackDetails() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [startUnit, setStartUnit] = useState('');
   const [deviceToDelete, setDeviceToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    setLoading(true);
+    setNotFound(false);
     loadRack();
   }, [id]);
 
   async function loadRack() {
+    setError('');
     try {
       const data = await api.getRack(id);
       setRack(data);
     } catch (err) {
       if (err.status === 404) setNotFound(true);
-      else toast(err.message, 'error');
+      else if (rack) toast(err.message, 'error');
+      else setError(err.message);
     }
     setLoading(false);
   }
@@ -39,6 +45,7 @@ export default function RackDetails() {
   }
 
   async function deleteDevice() {
+    setDeleting(true);
     try {
       await api.deleteDevice(deviceToDelete.id);
       toast('Пристрій демонтовано', 'success');
@@ -46,6 +53,7 @@ export default function RackDetails() {
     } catch (err) {
       toast(err.message, 'error');
     }
+    setDeleting(false);
     setDeviceToDelete(null);
   }
 
@@ -56,6 +64,18 @@ export default function RackDetails() {
       <section>
         <Skeleton height={40} width="40%" />
         <Skeleton height={300} />
+      </section>
+    );
+  }
+
+  if (error && !rack) {
+    return (
+      <section>
+        <Link to="/racks" className="back-link">← До реєстру</Link>
+        <div className="alert alert-error">
+          <span>{error}</span>
+          <button className="btn btn-sm" onClick={loadRack}>Повторити</button>
+        </div>
       </section>
     );
   }
@@ -117,7 +137,9 @@ export default function RackDetails() {
                 <tbody>
                   {rack.devices.map((d) => (
                     <tr key={d.id}>
-                      <td className="mono">{d.unitPosition}-{d.unitPosition + d.unitHeight - 1}</td>
+                      <td className="mono">
+                        {d.unitHeight > 1 ? `${d.unitPosition}-${d.unitPosition + d.unitHeight - 1}` : d.unitPosition}
+                      </td>
                       <td>{d.vendorModel}</td>
                       <td><span className={`type-tag type-${d.deviceType}`}>{DEVICE_TYPE_LABELS[d.deviceType]}</span></td>
                       <td className="mono">{d.powerConsumptionW}</td>
@@ -154,6 +176,7 @@ export default function RackDetails() {
           danger
           onConfirm={deleteDevice}
           onCancel={() => setDeviceToDelete(null)}
+          busy={deleting}
         />
       )}
     </section>
@@ -171,6 +194,7 @@ function AddDeviceForm({ rack, startUnit, onClose, onSaved }) {
     serialNumber: '',
   });
   const [serverError, setServerError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   // перевіряємо слоти одразу при введенні
   const errors = validateDevice(form, rack, rack.devices);
@@ -192,6 +216,7 @@ function AddDeviceForm({ rack, startUnit, onClose, onSaved }) {
     setServerError('');
     if (Object.keys(errors).length > 0) return;
 
+    setSaving(true);
     try {
       await api.createDevice({
         rackId: rack.id,
@@ -206,6 +231,7 @@ function AddDeviceForm({ rack, startUnit, onClose, onSaved }) {
       onSaved();
     } catch (err) {
       setServerError(err.message);
+      setSaving(false);
     }
   }
 
@@ -260,7 +286,9 @@ function AddDeviceForm({ rack, startUnit, onClose, onSaved }) {
 
         <div className="modal-actions">
           <button type="button" className="btn" onClick={onClose}>Скасувати</button>
-          <button type="submit" className="btn btn-primary">Додати</button>
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving ? 'Додавання…' : 'Додати'}
+          </button>
         </div>
       </form>
     </Modal>

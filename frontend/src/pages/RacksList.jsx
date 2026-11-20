@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useToast } from '../components/Toast.jsx';
@@ -15,15 +15,32 @@ export default function RacksList() {
 
   const [racks, setRacks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [firstLoad, setFirstLoad] = useState(true);
   const [error, setError] = useState('');
   const [rackToDelete, setRackToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [searchInput, setSearchInput] = useState(search);
+  const requestId = useRef(0);
   const toast = useToast();
+
+  // якщо URL змінився ззовні (Назад, скидання) - оновлюємо поле
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
+  // пишемо пошук в URL з невеликою затримкою
+  useEffect(() => {
+    if (searchInput === search) return;
+    const t = setTimeout(() => changeFilter('search', searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   useEffect(() => {
     loadRacks();
   }, [search, status, sortBy, order]);
 
   async function loadRacks() {
+    const myId = ++requestId.current;
     setLoading(true);
     setError('');
     try {
@@ -35,20 +52,21 @@ export default function RacksList() {
         params.sortOrder = order;
       }
       const data = await api.getRacks(params);
+      if (myId !== requestId.current) return; // прийшла стара відповідь
       setRacks(data);
     } catch (err) {
+      if (myId !== requestId.current) return;
       setError(err.message);
     }
     setLoading(false);
+    setFirstLoad(false);
   }
 
   function changeFilter(name, value) {
-    const params = new URLSearchParams(searchParams);
-    if (value) {
-      params.set(name, value);
-    } else {
-      params.delete(name);
-    }
+    // беремо актуальний URL, бо пошук пишеться із затримкою
+    const params = new URLSearchParams(window.location.search);
+    if (value) params.set(name, value);
+    else params.delete(name);
     setSearchParams(params, { replace: true });
   }
 
@@ -57,6 +75,7 @@ export default function RacksList() {
   }
 
   async function deleteRack() {
+    setDeleting(true);
     try {
       await api.deleteRack(rackToDelete.id);
       setRacks(racks.filter((r) => r.id !== rackToDelete.id));
@@ -64,6 +83,7 @@ export default function RacksList() {
     } catch (err) {
       toast(err.message, 'error');
     }
+    setDeleting(false);
     setRackToDelete(null);
   }
 
@@ -83,8 +103,8 @@ export default function RacksList() {
         <input
           className="input"
           placeholder="Пошук за назвою або локацією..."
-          value={search}
-          onChange={(e) => changeFilter('search', e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
         />
         <select className="input" value={status} onChange={(e) => changeFilter('status', e.target.value)}>
           <option value="">Усі статуси</option>
@@ -112,7 +132,7 @@ export default function RacksList() {
         </div>
       )}
 
-      {loading && (
+      {loading && firstLoad && (
         <div className="grid">
           <div className="card"><Skeleton height={120} /></div>
           <div className="card"><Skeleton height={120} /></div>
@@ -131,8 +151,8 @@ export default function RacksList() {
         </div>
       )}
 
-      {!loading && racks.length > 0 && (
-        <div className="grid">
+      {!firstLoad && !error && racks.length > 0 && (
+        <div className={`grid ${loading ? 'is-refreshing' : ''}`}>
           {racks.map((rack) => (
             <div key={rack.id} className="card">
               <div className="card-head">
@@ -171,6 +191,7 @@ export default function RacksList() {
           danger
           onConfirm={deleteRack}
           onCancel={() => setRackToDelete(null)}
+          busy={deleting}
         />
       )}
     </section>
